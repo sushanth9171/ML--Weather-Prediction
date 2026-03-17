@@ -21,53 +21,63 @@ Program:.
 
 ## Program:
 ```
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-​
-data = pd.read_csv("C:/Users/acer/Downloads/Mall_Customers.csv")
-print(data.head())
-​
-X = data.iloc[:, [3, 4]].values
-​
-wcss = []
-for i in range(1, 11):
-    kmeans = KMeans(n_clusters=i, init='k-means++', random_state=42)
-    kmeans.fit(X)
-    wcss.append(kmeans.inertia_)
-​
-plt.figure(figsize=(8,5))
-plt.plot(range(1, 11), wcss, marker='o')
-plt.title('Elbow Method')
-plt.xlabel('Number of Clusters')
-plt.ylabel('WCSS')
-plt.show()
-​
-kmeans = KMeans(n_clusters=5, init='k-means++', random_state=42)
-y_kmeans = kmeans.fit_predict(X)
-plt.figure(figsize=(8,6))
-plt.scatter(X[y_kmeans == 0, 0], X[y_kmeans == 0, 1], s=100, c='red', label='Cluster 1')
-plt.scatter(X[y_kmeans == 1, 0], X[y_kmeans == 1, 1], s=100, c='blue', label='Cluster 2')
-plt.scatter(X[y_kmeans == 2, 0], X[y_kmeans == 2, 1], s=100, c='green', label='Cluster 3')
-plt.scatter(X[y_kmeans == 3, 0], X[y_kmeans == 3, 1], s=100, c='cyan', label='Cluster 4')
-plt.scatter(X[y_kmeans == 4, 0], X[y_kmeans == 4, 1], s=100, c='magenta', label='Cluster 5')
-​
-plt.scatter(kmeans.cluster_centers_[:,0], 
-            kmeans.cluster_centers_[:,1], 
-            s=300, c='yellow', label='Centroids')
-​
-plt.title('Customer Segmentation using K-Means')
-plt.xlabel('Annual Income (k$)')
-plt.ylabel('Spending Score (1-100)')
-plt.legend()
-plt.show()
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+import joblib
+
+# Load dataset
+df = pd.read_csv("weather-station-eee-block_2024_07_13.csv")
+df.columns = df.columns.str.strip()
+df['time'] = pd.to_datetime(df['time'], errors='coerce')
+
+print("Original rows:", len(df))
+
+# Only drop if target missing
+df = df.dropna(subset=['tem', 'pm2_5'])
+
+# Fill feature columns instead of dropping
+df['hum'] = df['hum'].fillna(df['hum'].mean())
+df['pressure'] = df['pressure'].fillna(df['pressure'].mean())
+df['wind_speed'] = df['wind_speed'].fillna(df['wind_speed'].mean())
+df['co2'] = df['co2'].fillna(df['co2'].mean())
+
+# Sort by time
+df = df.sort_values('time')
+
+# Create lag features
+df['Temp_Lag1'] = df['tem'].shift(1)
+df['PM_Lag1'] = df['pm2_5'].shift(1)
+
+# Only remove first row created by shift
+df = df.iloc[1:]
+
+print("Rows after preprocessing:", len(df))
+
+# Features
+X = df[['hum', 'pressure', 'wind_speed', 'co2',
+        'Temp_Lag1', 'PM_Lag1']]
+
+y_temp = df['tem']
+y_pm = df['pm2_5']
+
+print("Training samples:", len(X))
+
+# Train models
+model_temp = RandomForestRegressor(n_estimators=300, random_state=42)
+model_pm = RandomForestRegressor(n_estimators=300, random_state=42)
+
+model_temp.fit(X, y_temp)
+model_pm.fit(X, y_pm)
+
+# Save models
+joblib.dump(model_temp, "temperature_model.pkl")
+joblib.dump(model_pm, "pm25_model.pkl")
+
+print("✅ Models trained and saved successfully!")
 ```
 
 ## Output:
-<img width="1036" height="217" alt="image" src="https://github.com/user-attachments/assets/56699909-38bc-42c2-ba49-248bd41fc5b5" />
-<img width="1046" height="680" alt="image" src="https://github.com/user-attachments/assets/5eb18394-348c-4ca3-841d-579649c7b927" />
-<img width="1049" height="779" alt="image" src="https://github.com/user-attachments/assets/57be75a9-4570-4431-b3c5-53510ecfb93d" />
 
 
 ## Result:
