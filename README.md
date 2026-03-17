@@ -11,74 +11,76 @@ To write a program to predict daily temperature , PM2.5 pollution level and Ener
 2. Anaconda – Python 3.7 Installation / Jupyter notebook
 
 ## Algorithm
-1.Load the customer dataset and select the relevant features such as Annual Income and Spending Score.
-2. Choose the number of clusters K and initialize K centroids randomly.
-3. Assign each data point to the nearest centroid using Euclidean distance and update the centroids by calculating the mean of each cluster. 
-4. Repeat Step 3 until the centroids no longer change and display the final clusters for customer segmentation.
+1.Start the programe
+
+2.Import the required libraries such as pandas and sklearn.
+
+3.Load the environmental sensor dataset from the CSV file.
+
+4.Select Humidity, WindSpeed and Pressure as input features.
+
+5.Select Temperature, PM2.5 and Energy as output variables.
+
+6.Split the dataset into training and testing data.
+
+7.Initialize the Random Forest Regressor model.
+
+8.Train the model using the training dataset
+
+9.Predict the output values using the test dataset
+
+10.Display the predicted values.
 
 Program:. 
-
+Developed by: G sushanth
+reg number:25011663
 
 ## Program:
 ```
-import pandas as pd
+
 import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
-import joblib
+from sklearn.metrics import mean_squared_error
 
-# Load dataset
-df = pd.read_csv("weather-station-eee-block_2024_07_13.csv")
-df.columns = df.columns.str.strip()
-df['time'] = pd.to_datetime(df['time'], errors='coerce')
+data = {
+    'Humidity': [60, 65, 70, 75, 80],
+    'WindSpeed': [5, 7, 6, 8, 7],
+    'Temperature': [30, 32, 31, 29, 28],
+    'PM25': [120, 130, 125, 140, 150],
+    'Energy': [200, 210, 205, 220, 230]
+}
 
-print("Original rows:", len(df))
+df = pd.DataFrame(data)
 
-# Only drop if target missing
-df = df.dropna(subset=['tem', 'pm2_5'])
+X = df[['Humidity', 'WindSpeed']]
+y_temp = df['Temperature']
+y_pm25 = df['PM25']
+y_energy = df['Energy']
 
-# Fill feature columns instead of dropping
-df['hum'] = df['hum'].fillna(df['hum'].mean())
-df['pressure'] = df['pressure'].fillna(df['pressure'].mean())
-df['wind_speed'] = df['wind_speed'].fillna(df['wind_speed'].mean())
-df['co2'] = df['co2'].fillna(df['co2'].mean())
+X_train, X_test, y_temp_train, y_temp_test = train_test_split(X, y_temp, test_size=0.2, random_state=42)
+_, _, y_pm25_train, y_pm25_test = train_test_split(X, y_pm25, test_size=0.2, random_state=42)
+_, _, y_energy_train, y_energy_test = train_test_split(X, y_energy, test_size=0.2, random_state=42)
 
-# Sort by time
-df = df.sort_values('time')
+rf = RandomForestRegressor(n_estimators=100, random_state=42)
 
-# Create lag features
-df['Temp_Lag1'] = df['tem'].shift(1)
-df['PM_Lag1'] = df['pm2_5'].shift(1)
+rf.fit(X_train, y_temp_train)
+temp_pred = rf.predict(X_test)
 
-# Only remove first row created by shift
-df = df.iloc[1:]
+rf.fit(X_train, y_pm25_train)
+pm25_pred = rf.predict(X_test)
 
-print("Rows after preprocessing:", len(df))
+rf.fit(X_train, y_energy_train)
+energy_pred = rf.predict(X_test)
 
-# Features
-X = df[['hum', 'pressure', 'wind_speed', 'co2',
-        'Temp_Lag1', 'PM_Lag1']]
-
-y_temp = df['tem']
-y_pm = df['pm2_5']
-
-print("Training samples:", len(X))
-
-# Train models
-model_temp = RandomForestRegressor(n_estimators=300, random_state=42)
-model_pm = RandomForestRegressor(n_estimators=300, random_state=42)
-
-model_temp.fit(X, y_temp)
-model_pm.fit(X, y_pm)
-
-# Save models
-joblib.dump(model_temp, "temperature_model.pkl")
-joblib.dump(model_pm, "pm25_model.pkl")
-
-print("✅ Models trained and saved successfully!")
+print("Temperature MSE:", mean_squared_error(y_temp_test, temp_pred))
+print("PM2.5 MSE:", mean_squared_error(y_pm25_test, pm25_pred))
+print("Energy MSE:", mean_squared_error(y_energy_test, energy_pred))
 ```
 
 ## Output:
-<img width="1056" height="102" alt="image" src="https://github.com/user-attachments/assets/0fe79f31-1fa3-4a15-ad3d-11c7bb7599fc" />
+<img width="590" height="122" alt="image" src="https://github.com/user-attachments/assets/6327ee26-4782-4444-8b69-9efcd2a9131e" />
 
 
 ## Result:
