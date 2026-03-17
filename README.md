@@ -78,6 +78,7 @@ print("✅ Models trained and saved successfully!")
 ```
 
 ## Output:
+<img width="1056" height="102" alt="image" src="https://github.com/user-attachments/assets/0fe79f31-1fa3-4a15-ad3d-11c7bb7599fc" />
 
 
 ## Result:
